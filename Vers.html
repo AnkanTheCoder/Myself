@@ -1,0 +1,231 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Portal</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<style>
+/* styles.css */
+
+/* Body background color */
+body {
+  background-color: #f4f4f4;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+/* Form container */
+#app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Form container */
+.form-container {
+  max-width: 400px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Form title */
+h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Form input fields */
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+/* Submit button */
+button {
+  width: 100%;
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Submit button hover */
+button:hover {
+  background-color: #555;
+}
+
+/* Links */
+a {
+  color: #333;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Personal page */
+#personal-page {
+  max-width: 400px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: none;
+}
+
+/* Logout button */
+#personal-page button {
+  width: 100%;
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Logout button hover */
+#personal-page button:hover {
+  background-color: #555;
+}
+</style>
+<div id="app">
+  <!-- Login/Signup Form -->
+  <div id="login-form">
+    <h2>Login</h2>
+    <input type="text" id="username" placeholder="Username" required>
+    <input type="password" id="password" placeholder="Password" required>
+    <button onclick="login()">Login</button>
+    <p>Don't have an account? <a href="#" onclick="toggleForm()">Sign Up</a></p>
+  </div>
+
+  <!-- Signup Form -->
+  <div id="signup-form" style="display:none;">
+    <h2>Sign Up</h2>
+    <input type="text" id="new-username" placeholder="Username" required>
+    <input type="password" id="new-password" placeholder="Password" required>
+    <button onclick="signup()">Sign Up</button>
+    <p>Already have an account? <a href="#" onclick="toggleForm()">Login</a></p>
+  </div>
+
+  <!-- Personal Page -->
+  <div id="personal-page" style="display:none;">
+    <!-- User's personal content goes here -->
+    <h2>Welcome, <span id="user-name"></span>!</h2>
+    <p>Your personal content...</p>
+    <button onclick="logout()">Logout</button>
+  </div>
+</div>
+<script>
+// Load users from localStorage or initialize with default data
+let users = JSON.parse(localStorage.getItem('users')) || [
+  { username: 'user1', password: 'password1', name: 'User 1' },
+  { username: 'user2', password: 'password2', name: 'User 2' },
+  { username: 'user3', password: 'password3', name: 'User 3' }
+];
+
+// Attempt to load the current user session from localStorage
+let currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+// Function to toggle between login and signup forms
+function toggleForm() {
+  const loginForm = document.getElementById('login-form');
+  const signupForm = document.getElementById('signup-form');
+
+  if (loginForm.style.display === 'none') {
+    loginForm.style.display = 'block';
+    signupForm.style.display = 'none';
+  } else {
+    loginForm.style.display = 'none';
+    signupForm.style.display = 'block';
+  }
+}
+
+// Function to authenticate user login
+function login() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const user = users.find(u => u.username === username && u.password === password);
+
+  if (user) {
+    currentUser = user;
+    saveCurrentUser();
+    showPersonalPage();
+  } else {
+    alert('Invalid username or password');
+  }
+}
+
+// Function to create a new user account
+function signup() {
+  const newUsername = document.getElementById('new-username').value;
+  const newPassword = document.getElementById('new-password').value;
+
+  // Check if the username already exists
+  if (users.some(u => u.username === newUsername)) {
+    alert('Username already exists. Please choose a different username.');
+    return;
+  }
+
+  // Create and save the new user
+  const newUser = { username: newUsername, password: newPassword, name: `User ${users.length + 1}` };
+  users.push(newUser);
+  currentUser = newUser;
+  saveUsers();  // Save the updated users list to localStorage
+  saveCurrentUser();  // Save current user to maintain session
+  showPersonalPage();
+}
+
+// Function to show personal page after successful login/signup
+function showPersonalPage() {
+  document.getElementById('login-form').style.display = 'none';
+  document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('personal-page').style.display = 'block';
+  document.getElementById('user-name').textContent = currentUser.name;
+}
+
+// Function to logout user
+function logout() {
+  currentUser = null;
+  localStorage.removeItem('currentUser');  // Remove current user from localStorage on logout
+  document.getElementById('login-form').style.display = 'block';
+  document.getElementById('signup-form').style.display = 'none';
+  document.getElementById('personal-page').style.display = 'none';
+}
+
+// Function to save users array to localStorage
+function saveUsers() {
+  localStorage.setItem('users', JSON.stringify(users));
+}
+
+// Function to save the current user to localStorage
+function saveCurrentUser() {
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
+}
+
+// Check if the user is already logged in when the page loads
+window.onload = function() {
+  if (currentUser) {
+    showPersonalPage();  // If there is a logged-in session, show personal page
+  }
+}
+</script>
+
+</body>
+</html>
